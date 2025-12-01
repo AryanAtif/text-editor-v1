@@ -21,7 +21,7 @@ void enter_raw_mode()
 
   struct termios raw = og_termios; // copy the original terminal attributes into a new termios variable "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
   
-  raw.c_lflag &= ~(ECHO | ICANON);        // AND the ECHO bits with the inverted bits
+  raw.c_lflag &= ~(ECHO | ICANON | ISIG);        // AND the ECHO bits with the inverted bits
 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);      // set the new terminal attributes to raw - aka - the struct termios
 }
