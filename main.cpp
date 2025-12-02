@@ -22,7 +22,7 @@ void enter_raw_mode()
   
   raw.c_iflag &= ~(IXON);
 
-  raw.c_lflag &= ~(ECHO | ICANON | ISIG);        // AND the ECHO bits with the inverted bits
+  raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN) ;        // AND the ECHO bits with the inverted bits
 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);      // set the new terminal attributes to raw - aka - the struct termios
 }
