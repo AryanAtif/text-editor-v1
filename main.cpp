@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 
-#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 0x11111 (which behave on terminal as ctrl) + <anykey>
+#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl) + <anykey>
 
 class termios og_termios;
 
@@ -42,17 +42,27 @@ void enter_raw_mode()
   if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {throw std::runtime_error(std::string("tcsetattr error: ") + std::strerror(errno));}
 }
 
+char editorReadKey() 
+{
+  int nread; // the value returned by read()
+  char c;    // The character entered by the user
+             
+  while ((nread = read(STDIN_FILENO, &c, 1)) != 1) 
+  {
+    if (nread == -1 && errno != EAGAIN) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
+;
+  }
+  return c;
+}
 
 int main() 
 {
   try 
   {
-enter_raw_mode();
+    enter_raw_mode();
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
     {
       char c = '\0';
-
-      if(read(STDIN_FILENO, &c, 1) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 
         // The body of this loop (i.e, everything written below) returns the ascii value of all characters that have been pressed by the user, and if the user presses non-control characters, the characters also get printed.
         // The character of ascii values (0-31) are named control characters. they really don't have any symbol assigned to them.
