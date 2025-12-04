@@ -8,6 +8,8 @@
 #include <stdexcept>
 
 
+#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 0x11111 (which behave on terminal as ctrl) + <anykey>
+
 class termios og_termios;
 
 void exit_raw_mode()
@@ -62,7 +64,7 @@ enter_raw_mode();
       {
         std::cout << int(c) << " (" << c << ")" << "\r\n";
       }
-      if (c == 'q') break; // quit the loop when read "Q" 
+      if (c == CTRL_KEY('q')) break; // quit the loop when read "Q" 
     }
   }
   
