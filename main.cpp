@@ -56,31 +56,25 @@ char editorReadKey()
   return c;
 }
 
+void editorProcessKeypress() {
+  char c = editorReadKey();
+  switch (c) {
+    case CTRL_KEY('q'):
+      exit(0);
+      break;
+  }
+}
 
 int main() 
 {
   try 
   {
-enter_raw_mode();
+    enter_raw_mode();
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
     {
-      char c = '\0';
-
-      if(read(STDIN_FILENO, &c, 1) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
-
-        // The body of this loop (i.e, everything written below) returns the ascii value of all characters that have been pressed by the user, and if the user presses non-control characters, the characters also get printed.
-        // The character of ascii values (0-31) are named control characters. they really don't have any symbol assigned to them.
-      if ( c >= 0 && c <= 31)  
-      {
-        std::cout << int(c) << "\r\n";
-      }
-      else
-      {
-        std::cout << int(c) << " (" << c << ")" << "\r\n";
-      }
+      editorProcessKeypress(); 
     }
   }
-  
   catch(const std::exception &error)
   {
     std::cerr << error.what() << std::endl;
