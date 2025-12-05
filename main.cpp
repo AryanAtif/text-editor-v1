@@ -26,6 +26,9 @@ void exit_raw_mode()
   if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &og_termios) == -1) 
   {
     std::cerr << "tcsetattr error: " << std::strerror(errno) << std::endl;
+      // To clear the screen
+    write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+    write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
     exit(1);
   }
 }
@@ -73,7 +76,10 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
   char c = editorReadKey();
   switch (c) {
     case CTRL_KEY('q'):
-      editorRefreshScreen();  // Refresh the screen before quiting 
+        // To clear the screen
+      write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+      write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+      
       exit(0);
       break;
   }
@@ -81,9 +87,19 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 
 
 /*** output ***/
+void editorDrawRows()  // The rows of tildes
+{
+  int y;
+  for (y = 0; y < 24; y++) {
+    write(STDOUT_FILENO, "~\r\n", 3);
+  }
+}
+
 void editorRefreshScreen() 
 {
   write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+  editorDrawRows();
   write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
 }
 
@@ -102,7 +118,9 @@ int main()
   }
   catch(const std::exception &error)
   {
-    editorRefreshScreen();  // Refresh the screen before quiting with error 
+      // To clear the screen
+    write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+    write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
     
     std::cerr << error.what() << std::endl;
     
