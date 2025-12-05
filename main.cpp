@@ -75,11 +75,21 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
   }
 }
 
+
+/*** output ***/
+void editorRefreshScreen() // clears the screen
+{
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+}
+
+
 int main() 
 {
   try 
   {
+    editorRefreshScreen()
     enter_raw_mode();
+    
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
     {
       editorProcessKeypress(); 
