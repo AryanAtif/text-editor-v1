@@ -87,7 +87,7 @@ int main()
 {
   try 
   {
-    editorRefreshScreen()
+    editorRefreshScreen();
     enter_raw_mode();
     
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
