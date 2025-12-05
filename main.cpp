@@ -78,6 +78,8 @@ enter_raw_mode();
       {
         std::cout << int(c) << " (" << c << ")" << "\r\n";
       }
+
+      if (c == CTRL_KEY('q')) break; // Quit the program when read "Ctrl+Q"
     }
   }
   
