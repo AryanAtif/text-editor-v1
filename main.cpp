@@ -43,7 +43,7 @@ void enter_raw_mode()
 }
 
 
-char editorReadKey() 
+char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and return it
 {
   int nread; // the value returned by read()
   char c;    // The character entered by the user
@@ -56,7 +56,8 @@ char editorReadKey()
   return c;
 }
 
-void editorProcessKeypress() {
+void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
+{
   char c = editorReadKey();
   switch (c) {
     case CTRL_KEY('q'):
