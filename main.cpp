@@ -80,6 +80,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 void editorRefreshScreen() // clears the screen
 {
   write(STDOUT_FILENO, "\x1b[2J", 4);
+  write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
 
