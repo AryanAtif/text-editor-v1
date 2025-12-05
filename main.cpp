@@ -1,15 +1,21 @@
+
+/**** The Header files ****/
+
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <termios.h>
 #include <iostream>
-#include <ctype.h>
+#include <cctype>
 #include <cstring>
 #include <cerrno>
 #include <stdexcept>
 
 
+/**** Declarations ****/
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl) + <anykey>
 
+
+/**** The Operations on the terminal ****/
 class termios og_termios;
 
 void exit_raw_mode()
@@ -55,6 +61,9 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
   }
   return c;
 }
+
+
+/**** Input Operations ****/
 
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
