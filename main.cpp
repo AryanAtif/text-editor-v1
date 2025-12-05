@@ -78,7 +78,6 @@ enter_raw_mode();
       {
         std::cout << int(c) << " (" << c << ")" << "\r\n";
       }
-
     }
   }
   
