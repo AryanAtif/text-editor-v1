@@ -14,8 +14,11 @@
 /**** Declarations ****/
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl) + <anykey>
 
+/**** Prototype to be declared before their definition ***/
 
-/**** The Operations on the terminal ****/
+void editorRefreshScreen();
+
+  /**** The Operations on the terminal ****/
 class termios og_termios;
 
 void exit_raw_mode()
@@ -23,6 +26,9 @@ void exit_raw_mode()
   if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &og_termios) == -1) 
   {
     std::cerr << "tcsetattr error: " << std::strerror(errno) << std::endl;
+      // To clear the screen
+    write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+    write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
     exit(1);
   }
 }
@@ -70,6 +76,10 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
   char c = editorReadKey();
   switch (c) {
     case CTRL_KEY('q'):
+        // To clear the screen
+      write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+      write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+      
       exit(0);
       break;
   }
@@ -77,9 +87,20 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 
 
 /*** output ***/
-void editorRefreshScreen() // clears the screen
+void editorDrawRows()  // The rows of tildes
 {
-  write(STDOUT_FILENO, "\x1b[2J", 4);
+  int y;
+  for (y = 0; y < 24; y++) {
+    write(STDOUT_FILENO, "~\r\n", 3);
+  }
+}
+
+void editorRefreshScreen() 
+{
+  write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+  editorDrawRows();
+  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
 }
 
 
@@ -97,7 +118,12 @@ int main()
   }
   catch(const std::exception &error)
   {
+      // To clear the screen
+    write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
+    write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+    
     std::cerr << error.what() << std::endl;
+    
     exit(1);
   }
 
