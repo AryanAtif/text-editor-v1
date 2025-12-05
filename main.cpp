@@ -74,7 +74,6 @@ int main()
       {
         std::cout << int(c) << " (" << c << ")" << "\r\n";
       }
-      if (c == CTRL_KEY('q')) break; // quit the loop when read "Q" 
     }
   }
   
