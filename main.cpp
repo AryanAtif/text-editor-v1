@@ -2,10 +2,10 @@
 /**** The Header files ****/
 
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <termios.h>
 #include <iostream>
-#include <ctype.h>
+#include <cctype>
 #include <cstring>
 #include <cerrno>
 #include <stdexcept>
