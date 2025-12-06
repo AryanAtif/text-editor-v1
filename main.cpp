@@ -111,9 +111,11 @@ int getWindowSize(int *rows, int *cols)
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
   char c = editorReadKey();
-  switch (c) {
+  switch (c) 
+  {
     case CTRL_KEY('q'):
-        // To clear the screen
+      
+      // To clear the screen before quitting
       write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
       write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
       
@@ -131,7 +133,12 @@ void editorDrawRows()  // The rows of tildes
 {
   int y;
   for (y = 0; y < config.screen_rows; y++) {
-    write(STDOUT_FILENO, "~\r\n", 3);
+    write(STDOUT_FILENO, "~", 1); // print tilde
+   
+    if (y < config.screen_rows - 1) {
+      write(STDOUT_FILENO, "\r\n", 2); // get a new line whenever y is not at the end of the screen
+    }
+
   }
 }
 
