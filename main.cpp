@@ -1,6 +1,5 @@
 
 /**** The Header files ****/
-
 #include <unistd.h>
 #include <cstdlib>
 #include <termios.h>
@@ -14,16 +13,21 @@
 /**** Declarations ****/
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl) + <anykey>
 
-/**** Prototype to be declared before their definition ***/
-
+/**** Prototypes to be declared before their definition ***/
 void editorRefreshScreen();
 
   /**** The Operations on the terminal ****/
-class termios og_termios;
+class Editor_config
+{
+  public:
+    class termios og_termios;
+};
+
+Editor_config config;
 
 void exit_raw_mode()
 {
-  if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &og_termios) == -1) 
+  if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &config.og_termios) == -1) 
   {
     std::cerr << "tcsetattr error: " << std::strerror(errno) << std::endl;
       // To clear the screen
@@ -37,11 +41,11 @@ void exit_raw_mode()
 void enter_raw_mode()
 {
   //Read the terminal Attributes
-  if( tcgetattr(STDIN_FILENO, &og_termios) == -1){throw std::runtime_error(std::string("tcsetattr error: ") + std::strerror(errno));}
+  if( tcgetattr(STDIN_FILENO, &config.og_termios) == -1){throw std::runtime_error(std::string("tcsetattr error: ") + std::strerror(errno));}
 
   atexit(exit_raw_mode); // tell the compiler beforehand to execute exit_raw_mode() before quiting the program.
 
-  class termios raw = og_termios; // copy the original terminal attributes into a new termios variable "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
+  class termios raw = config.og_termios; // copy the original terminal attributes into a new termios variable "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
   
   raw.c_iflag &= ~(ICRNL | IXON);                          // Turn off the Ctrl+S, Ctrl+Q
   raw.c_oflag &= ~(OPOST);                                 // Turn off Ctrl+V
