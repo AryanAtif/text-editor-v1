@@ -130,7 +130,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 void editorDrawRows()  // The rows of tildes
 {
   int y;
-  for (y = 0; y < 24; y++) {
+  for (y = 0; y < config.screen_rows; y++) {
     write(STDOUT_FILENO, "~\r\n", 3);
   }
 }
