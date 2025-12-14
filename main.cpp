@@ -103,6 +103,26 @@ int getWindowSize(int *rows, int *cols)
   }
 }
 
+
+//==========================================================================================================
+/**** AppendBuffer class (Custom String) ****/
+//==========================================================================================================
+
+class AppendBuffer {
+private:
+    std::string buffer;
+
+public:
+    void append(std::string_view s) {
+        buffer.append(s);
+    }
+    
+    // Equivalent to accessing ab->b and ab->len
+    const char* data() const { return buffer.c_str(); }
+    size_t length() const { return buffer.size(); }
+    
+    // abFree is automatic (destructor)
+};
 //==========================================================================================================
 /**** Input Operations ****/
 //==========================================================================================================
