@@ -60,7 +60,7 @@ void enter_raw_mode()
 
   atexit(exit_raw_mode); // tell the compiler beforehand to execute exit_raw_mode() before quiting the program.
 
-  termios raw = config.og_termios; // copy the original terminal attributes into a new termios variable "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
+  termios raw = config.og_termios; // copy the original terminal attributes into a new termios object "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
   
   raw.c_iflag &= ~(ICRNL | IXON);                          // Turn off the Ctrl+S, Ctrl+Q
   raw.c_oflag &= ~(OPOST);                                 // Turn off Ctrl+V
@@ -103,6 +103,26 @@ int getWindowSize(int *rows, int *cols)
   }
 }
 
+
+//==========================================================================================================
+/**** AppendBuffer class (Custom String) ****/
+//==========================================================================================================
+
+class AppendBuffer {
+private:
+    std::string buffer;
+
+public:
+    void append(std::string_view s) {
+        buffer.append(s);
+    }
+    
+    // Equivalent to accessing ab->b and ab->len
+    const char* data() const { return buffer.c_str(); }
+    size_t length() const { return buffer.size(); }
+    
+    // abFree is automatic (destructor)
+};
 //==========================================================================================================
 /**** Input Operations ****/
 //==========================================================================================================
@@ -110,11 +130,9 @@ int getWindowSize(int *rows, int *cols)
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
   char c = editorReadKey();
-  switch (c) 
-  {
+  switch (c) {
     case CTRL_KEY('q'):
-      
-      // To clear the screen before quitting
+        // To clear the screen
       write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
       write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
       
@@ -132,12 +150,7 @@ void editorDrawRows()  // The rows of tildes
 {
   int y;
   for (y = 0; y < config.screen_rows; y++) {
-    write(STDOUT_FILENO, "~", 1); // print tilde
-   
-    if (y < config.screen_rows - 1) {
-      write(STDOUT_FILENO, "\r\n", 2); // get a new line whenever y is not at the end of the screen
-    }
-
+    write(STDOUT_FILENO, "~\r\n", 3);
   }
 }
 
