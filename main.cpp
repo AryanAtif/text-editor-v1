@@ -1,4 +1,3 @@
-
 //==========================================================================================================
 /**** The Header files ****/
 //==========================================================================================================
@@ -18,10 +17,10 @@
 /**** Declarations ****/
 //==========================================================================================================
 
-#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl) + <anykey>
+#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
 //==========================================================================================================
-/**** Prototypes to be declared before their definition ***/
+/**** Forward Declarations ***/
 //==========================================================================================================
 
 void editorRefreshScreen();
@@ -36,7 +35,7 @@ class Editor_config
     int screen_rows;
     int screen_cols;
 
-    termios og_termios;   // an object of class "termios"
+    termios og_termios;   // an object of the class "termios"
 };
 
 Editor_config config; // global object for the editor config
@@ -126,7 +125,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 
 
 //==========================================================================================================
-/*** output ***/
+/*** Output Operations ***/
 //==========================================================================================================
 
 void editorDrawRows()  // The rows of tildes
@@ -181,7 +180,6 @@ int main()
     
     exit(1);
   }
-
 
   return 0;
 }
