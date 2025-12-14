@@ -1,4 +1,3 @@
-
 //==========================================================================================================
 /**** The Header files ****/
 //==========================================================================================================
@@ -18,10 +17,10 @@
 /**** Declarations ****/
 //==========================================================================================================
 
-#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl) + <anykey>
+#define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
 //==========================================================================================================
-/**** Prototypes to be declared before their definition ***/
+/**** Forward Declarations ***/
 //==========================================================================================================
 
 void editorRefreshScreen();
@@ -36,7 +35,7 @@ class Editor_config
     int screen_rows;
     int screen_cols;
 
-    termios og_termios;   // an object of class "termios"
+    termios og_termios;   // an object of the class "termios"
 };
 
 Editor_config config; // global object for the editor config
@@ -61,7 +60,7 @@ void enter_raw_mode()
 
   atexit(exit_raw_mode); // tell the compiler beforehand to execute exit_raw_mode() before quiting the program.
 
-  termios raw = config.og_termios; // copy the original terminal attributes into a new termios variable "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
+  termios raw = config.og_termios; // copy the original terminal attributes into a new termios object "raw", so that the original attributes don't get disturbed when the program calls exit_og_termios_mode before quitting the program.
   
   raw.c_iflag &= ~(ICRNL | IXON);                          // Turn off the Ctrl+S, Ctrl+Q
   raw.c_oflag &= ~(OPOST);                                 // Turn off Ctrl+V
@@ -124,7 +123,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 
 
 //==========================================================================================================
-/*** output ***/
+/*** Output Operations ***/
 //==========================================================================================================
 
 void editorDrawRows()  // The rows of tildes
@@ -174,7 +173,6 @@ int main()
     
     exit(1);
   }
-
 
   return 0;
 }
