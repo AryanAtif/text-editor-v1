@@ -18,7 +18,7 @@
 //==========================================================================================================
 
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
-
+#define ABUF_INIT {NULL, 0} // to initialize empty strings
 //==========================================================================================================
 /**** Forward Declarations ***/
 //==========================================================================================================
@@ -146,25 +146,29 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 /*** Output Operations ***/
 //==========================================================================================================
 
-void editorDrawRows()  // The rows of tildes
+void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 {
   int y;
   for (y = 0; y < config.screen_rows; y++) {
-    write(STDOUT_FILENO, "~", 1);
+    ab->append("~");
     
     if (y < config.screen_rows - 1) 
     {
-      write(STDOUT_FILENO, "\r\n", 2);
+      ab->append("\r\n");
     }
   }
 }
 
 void editorRefreshScreen() 
 {
-  write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
-  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
-  editorDrawRows();
-  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+  AppendBuffer ab;
+
+  ab.append("\x1b[2J"); // Clears the terminal
+  ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
+  editorDrawRows(&ab);
+
+  ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
+  write(STDOUT_FILENO, ab.data(), ab.length());
 }
 
 //==========================================================================================================
