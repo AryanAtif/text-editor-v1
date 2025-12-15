@@ -151,6 +151,8 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
   int y;
   for (y = 0; y < config.screen_rows; y++) {
     ab->append("~");
+
+    ab->append("\x1b[K"); // erarse each line before painting
     
     if (y < config.screen_rows - 1) 
     {
@@ -164,7 +166,6 @@ void editorRefreshScreen()
   AppendBuffer ab;
 
   ab.append("\x1b[?25l"); // hides the cursor
-  ab.append("\x1b[2J"); // Clears the terminal
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   editorDrawRows(&ab);
 
