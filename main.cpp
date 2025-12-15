@@ -114,15 +114,15 @@ private:
 
 public:
     void append(std::string_view s) {
-        buffer.append(s);
+        buffer.append(s);                   // calls the std::string::append function to append the string
     }
     
-    // Equivalent to accessing ab->b and ab->len
-    const char* data() const { return buffer.c_str(); }
-    size_t length() const { return buffer.size(); }
+    const char* data() const { return buffer.c_str(); } // returns the C++-style string as a C-style string
+    size_t length() const { return buffer.size(); }     // return the string size
     
-    // abFree is automatic (destructor)
 };
+
+
 //==========================================================================================================
 /**** Input Operations ****/
 //==========================================================================================================
@@ -146,20 +146,31 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 /*** Output Operations ***/
 //==========================================================================================================
 
-void editorDrawRows()  // The rows of tildes
+void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 {
   int y;
   for (y = 0; y < config.screen_rows; y++) {
-    write(STDOUT_FILENO, "~\r\n", 3);
+    ab->append("~");
+    
+    if (y < config.screen_rows - 1) 
+    {
+      ab->append("\r\n");
+    }
   }
 }
 
 void editorRefreshScreen() 
 {
-  write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
-  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
-  editorDrawRows();
-  write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
+  AppendBuffer ab;
+
+  ab.append("\x1b[?25l"); // hides the cursor
+  ab.append("\x1b[2J"); // Clears the terminal
+  ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
+  editorDrawRows(&ab);
+
+  ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
+  ab.append("\x1b[?25h"); // shows the cursor
+  write(STDOUT_FILENO, ab.data(), ab.length());
 }
 
 //==========================================================================================================
