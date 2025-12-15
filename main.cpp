@@ -150,7 +150,12 @@ void editorDrawRows()  // The rows of tildes
 {
   int y;
   for (y = 0; y < config.screen_rows; y++) {
-    write(STDOUT_FILENO, "~\r\n", 3);
+    write(STDOUT_FILENO, "~", 1);
+    
+    if (y < config.screen_rows - 1) 
+    {
+      write(STDOUT_FILENO, "\r\n", 2);
+    }
   }
 }
 
