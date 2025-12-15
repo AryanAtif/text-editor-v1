@@ -163,11 +163,13 @@ void editorRefreshScreen()
 {
   AppendBuffer ab;
 
+  ab.append("\x1b[?25l"); // hides the cursor
   ab.append("\x1b[2J"); // Clears the terminal
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   editorDrawRows(&ab);
 
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
+  ab.append("\x1b[?25h"); // shows the cursor
   write(STDOUT_FILENO, ab.data(), ab.length());
 }
 
