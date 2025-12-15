@@ -114,15 +114,15 @@ private:
 
 public:
     void append(std::string_view s) {
-        buffer.append(s);
+        buffer.append(s);                   // calls the std::string::append function to append the string
     }
     
-    // Equivalent to accessing ab->b and ab->len
-    const char* data() const { return buffer.c_str(); }
-    size_t length() const { return buffer.size(); }
+    const char* data() const { return buffer.c_str(); } // returns the C++-style string as a C-style string
+    size_t length() const { return buffer.size(); }     // return the string size
     
-    // abFree is automatic (destructor)
 };
+
+
 //==========================================================================================================
 /**** Input Operations ****/
 //==========================================================================================================
