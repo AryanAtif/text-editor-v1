@@ -21,6 +21,15 @@
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
 #define VERSION  "1.0"
+
+enum cursor_movement
+{
+  ARROW_LEFT = 1000;
+  ARROW_DOWN;
+  ARROW_UP;
+  ARROW_RIGHT;
+};
+
 //==========================================================================================================
 /**** Forward Declarations ***/
 //==========================================================================================================
@@ -77,7 +86,7 @@ void enter_raw_mode()
 }
 
 
-char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and return it
+int editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and return it
 {
   int nread; // the value returned by read()
   char c;    // The character entered by the user
@@ -90,7 +99,7 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
   if (c == '\x1b') 
   {
     char seq[3];
-
+    
     if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
     if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
 
@@ -98,10 +107,10 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
     {
       switch (seq[1]) 
       {
-        case 'A': return 'w';
-        case 'B': return 's';
-        case 'C': return 'd';
-        case 'D': return 'a';
+        case 'A': return ARROW_UP;
+        case 'B': return ARROW_DOWN;
+        case 'C': return ARROW_RIGHT;
+        case 'D': return ARROW_LEFT;
       }
     }
     return '\x1b';
@@ -152,18 +161,18 @@ public:
 /**** Input Operations ****/
 //==========================================================================================================
 
-void editorMoveCursor(char key) {
+void editorMoveCursor(int key) {
   switch (key) {
-    case 'a':
+    case ARROW_LEFT:
       config.cursor_x--;
       break;
-    case 'd':
+    case ARROW_RIGHT:
       config.cursor_x++;
       break;
-    case 'w':
+    case ARROW_UP:
       config.cursor_y--;
       break;
-    case 's':
+    case ARROW_DOWN:
       config.cursor_y++;
       break;
   }
@@ -171,8 +180,11 @@ void editorMoveCursor(char key) {
 
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
-  char c = editorReadKey();
-  switch (c) {
+  int c = editorReadKey();
+
+  switch (c)
+  {
+
     case CTRL_KEY('q'):
         // To clear the screen
       write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
@@ -181,10 +193,10 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       exit(0);
       break;
     
-    case 'w':
-    case 's':
-    case 'a':
-    case 'd':
+    case ARROW_UP:
+    case ARROW_DOWN:
+    case ARROW_LEFT:
+    case ARROW_RIGHT:
       editorMoveCursor(c);
       break;
   }
@@ -198,6 +210,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 {
   int y;
+
   for (y = 0; y < config.screen_rows; y++) 
   {
     if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
