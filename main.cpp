@@ -158,6 +158,13 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       
       exit(0);
       break;
+    
+    case 'w':
+    case 's':
+    case 'a':
+    case 'd':
+      editorMoveCursor(c);
+      break;
   }
 }
 
