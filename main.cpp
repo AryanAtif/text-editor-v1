@@ -24,10 +24,10 @@
 
 enum cursor_movement
 {
-  ARROW_LEFT = 1000;
-  ARROW_DOWN;
-  ARROW_UP;
-  ARROW_RIGHT;
+  ARROW_LEFT = 1000,
+  ARROW_DOWN,
+  ARROW_UP,
+  ARROW_RIGHT,
 };
 
 //==========================================================================================================
@@ -161,19 +161,36 @@ public:
 /**** Input Operations ****/
 //==========================================================================================================
 
-void editorMoveCursor(int key) {
-  switch (key) {
+void editorMoveCursor(int key) 
+{
+  switch (key)
+  {
     case ARROW_LEFT:
-      config.cursor_x--;
+      if (config.cursor_x != 0)
+      {
+        config.cursor_x--;
+      }
       break;
+
     case ARROW_RIGHT:
-      config.cursor_x++;
+      if (config.cursor_x != (config.screen_cols -1)
+      {
+        config.cursor_x++;
+      }
       break;
+
     case ARROW_UP:
-      config.cursor_y--;
+      if (config.cursor_y != 0)
+      {
+        config.cursor_y--;
+      }
       break;
+
     case ARROW_DOWN:
-      config.cursor_y++;
+      if (config.cursor_y != (config.screen_rows -1)
+      {
+        config.cursor_y++;
+      }
       break;
   }
 }
