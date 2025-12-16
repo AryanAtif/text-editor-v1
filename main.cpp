@@ -24,10 +24,10 @@
 
 enum cursor_movement
 {
-  ARROW_LEFT = 1000;
-  ARROW_DOWN;
-  ARROW_UP;
-  ARROW_RIGHT;
+  ARROW_LEFT = 1000,
+  ARROW_DOWN,
+  ARROW_UP,
+  ARROW_RIGHT,
 };
 
 //==========================================================================================================
