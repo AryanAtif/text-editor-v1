@@ -162,7 +162,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
       if(welcome_length > config.screen_cols) { welcome_length = config.screen_cols; } // When the welcome message is too long for some screen.
    
       int padding = (config.screen_cols - welcome_length) / 2;
-      if (padding == 1)
+      if (padding)
       {
         ab->append("~");
         padding--;
