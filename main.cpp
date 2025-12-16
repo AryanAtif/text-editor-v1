@@ -34,6 +34,7 @@ void editorRefreshScreen();
 class Editor_config
 {
   public:
+    int cursor_x, cursor_y; // the x and y coordinates of the cursor
     int screen_rows;
     int screen_cols;
 
@@ -203,6 +204,10 @@ void editorRefreshScreen()
 
 void initEditor() 
 {
+  // set the x and y coordinates to 0,0
+  config.cursor_x = 0; 
+  config.cursor_y = 0;
+
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 }
 
