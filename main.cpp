@@ -87,7 +87,29 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
     if (nread == -1 && errno != EAGAIN) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 ;
   }
-  return c;
+  if (c == '\x1b') 
+  {
+    char seq[3];
+
+    if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
+    if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
+
+    if (seq[0] == '[') 
+    {
+      switch (seq[1]) 
+      {
+        case 'A': return 'w';
+        case 'B': return 's';
+        case 'C': return 'd';
+        case 'D': return 'a';
+      }
+    }
+    return '\x1b';
+  } 
+  else
+  {
+    return c;
+  }
 }
 
 int getWindowSize(int *rows, int *cols) 
