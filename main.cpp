@@ -130,6 +130,23 @@ public:
 /**** Input Operations ****/
 //==========================================================================================================
 
+void editorMoveCursor(char key) {
+  switch (key) {
+    case 'a':
+      config.cursor_x--;
+      break;
+    case 'd':
+      config.cursor_x++;
+      break;
+    case 'w':
+      config.cursor_y--;
+      break;
+    case 's':
+      config.cursor_y++;
+      break;
+  }
+}
+
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
   char c = editorReadKey();
