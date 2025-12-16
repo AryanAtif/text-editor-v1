@@ -24,10 +24,10 @@
 
 enum cursor_movement
 {
-  ARROW_LEFT = 'a';
-  ARROW_DOWN = 's';
-  ARROW_UP = 'w';
-  ARROW_RIGHT = 'd';
+  ARROW_LEFT = 1000;
+  ARROW_DOWN;
+  ARROW_UP;
+  ARROW_RIGHT;
 };
 
 //==========================================================================================================
@@ -86,7 +86,7 @@ void enter_raw_mode()
 }
 
 
-char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and return it
+int editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and return it
 {
   int nread; // the value returned by read()
   char c;    // The character entered by the user
@@ -161,7 +161,7 @@ public:
 /**** Input Operations ****/
 //==========================================================================================================
 
-void editorMoveCursor(char key) {
+void editorMoveCursor(int key) {
   switch (key) {
     case ARROW_LEFT:
       config.cursor_x--;
@@ -180,8 +180,11 @@ void editorMoveCursor(char key) {
 
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
-  char c = editorReadKey();
-  switch (c) {
+  int c = editorReadKey();
+
+  switch (c)
+  {
+
     case CTRL_KEY('q'):
         // To clear the screen
       write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
