@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <iostream>
+#include <cstdio>
 #include <cctype>
 #include <cstring>
 #include <cerrno>
@@ -19,6 +20,7 @@
 
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
+#define VERSION  "1.0"
 //==========================================================================================================
 /**** Forward Declarations ***/
 //==========================================================================================================
@@ -149,8 +151,32 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 {
   int y;
-  for (y = 0; y < config.screen_rows; y++) {
-    ab->append("~");
+  for (y = 0; y < config.screen_rows; y++) 
+  {
+    if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
+    {
+      char welcome [50];
+      int welcome_length = snprintf(welcome, sizeof(welcome), "Text editor -- version %s", VERSION);
+
+
+      if(welcome_length > config.screen_cols) { welcome_length = config.screen_cols; } // When the welcome message is too long for some screen.
+   
+      int padding = (config.screen_cols - welcome_length) / 2;
+      if (padding == 1)
+      {
+        ab->append("~");
+        padding--;
+      }
+      while (padding--) { ab->append(" "); }
+
+      ab->append(welcome);
+    }
+    else
+    {
+      ab->append("~");
+    }
+
+    ab->append("\x1b[K"); // erarse each line before painting
     
     if (y < config.screen_rows - 1) 
     {
@@ -164,7 +190,6 @@ void editorRefreshScreen()
   AppendBuffer ab;
 
   ab.append("\x1b[?25l"); // hides the cursor
-  ab.append("\x1b[2J"); // Clears the terminal
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   editorDrawRows(&ab);
 
