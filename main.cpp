@@ -20,7 +20,7 @@
 
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
-#define VERSION  "1.0";
+#define VERSION  "1.0"
 //==========================================================================================================
 /**** Forward Declarations ***/
 //==========================================================================================================
@@ -160,10 +160,21 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 
 
       if(welcome_length > config.screen_cols) { welcome_length = config.screen_cols; } // When the welcome message is too long for some screen.
-    
+   
+      int padding = (config.screen_cols - welcome_length) / 2;
+      if (padding == 1)
+      {
+        ab->append("~");
+        padding--;
+      }
+      while (padding--) { ab->append(" "); }
+
       ab->append(welcome);
     }
-    ab->append("~");
+    else
+    {
+      ab->append("~");
+    }
 
     ab->append("\x1b[K"); // erarse each line before painting
     
