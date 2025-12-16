@@ -21,6 +21,15 @@
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
 #define VERSION  "1.0"
+
+enum cursor_movement
+{
+  ARROW_LEFT = 'a';
+  ARROW_DOWN = 's';
+  ARROW_UP = 'w';
+  ARROW_RIGHT = 'd';
+};
+
 //==========================================================================================================
 /**** Forward Declarations ***/
 //==========================================================================================================
@@ -90,7 +99,7 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
   if (c == '\x1b') 
   {
     char seq[3];
-
+    
     if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
     if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
 
@@ -98,10 +107,10 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
     {
       switch (seq[1]) 
       {
-        case 'A': return 'w';
-        case 'B': return 's';
-        case 'C': return 'd';
-        case 'D': return 'a';
+        case 'A': return ARROW_UP;
+        case 'B': return ARROW_DOWN;
+        case 'C': return ARROW_RIGHT;
+        case 'D': return ARROW_LEFT;
       }
     }
     return '\x1b';
@@ -154,16 +163,16 @@ public:
 
 void editorMoveCursor(char key) {
   switch (key) {
-    case 'a':
+    case ARROW_LEFT:
       config.cursor_x--;
       break;
-    case 'd':
+    case ARROW_RIGHT:
       config.cursor_x++;
       break;
-    case 'w':
+    case ARROW_UP:
       config.cursor_y--;
       break;
-    case 's':
+    case ARROW_DOWN:
       config.cursor_y++;
       break;
   }
