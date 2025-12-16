@@ -190,10 +190,10 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       exit(0);
       break;
     
-    case 'w':
-    case 's':
-    case 'a':
-    case 'd':
+    case ARROW_UP:
+    case ARROW_DOWN:
+    case ARROW_LEFT:
+    case ARROW_RIGHT:
       editorMoveCursor(c);
       break;
   }
@@ -207,6 +207,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 {
   int y;
+
   for (y = 0; y < config.screen_rows; y++) 
   {
     if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
