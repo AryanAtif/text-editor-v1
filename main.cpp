@@ -34,6 +34,7 @@ void editorRefreshScreen();
 class Editor_config
 {
   public:
+    int cursor_x, cursor_y; // the x and y coordinates of the cursor
     int screen_rows;
     int screen_cols;
 
@@ -86,7 +87,29 @@ char editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and
     if (nread == -1 && errno != EAGAIN) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 ;
   }
-  return c;
+  if (c == '\x1b') 
+  {
+    char seq[3];
+
+    if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
+    if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
+
+    if (seq[0] == '[') 
+    {
+      switch (seq[1]) 
+      {
+        case 'A': return 'w';
+        case 'B': return 's';
+        case 'C': return 'd';
+        case 'D': return 'a';
+      }
+    }
+    return '\x1b';
+  } 
+  else
+  {
+    return c;
+  }
 }
 
 int getWindowSize(int *rows, int *cols) 
@@ -129,6 +152,23 @@ public:
 /**** Input Operations ****/
 //==========================================================================================================
 
+void editorMoveCursor(char key) {
+  switch (key) {
+    case 'a':
+      config.cursor_x--;
+      break;
+    case 'd':
+      config.cursor_x++;
+      break;
+    case 'w':
+      config.cursor_y--;
+      break;
+    case 's':
+      config.cursor_y++;
+      break;
+  }
+}
+
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
   char c = editorReadKey();
@@ -139,6 +179,13 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
       
       exit(0);
+      break;
+    
+    case 'w':
+    case 's':
+    case 'a':
+    case 'd':
+      editorMoveCursor(c);
       break;
   }
 }
@@ -162,7 +209,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
       if(welcome_length > config.screen_cols) { welcome_length = config.screen_cols; } // When the welcome message is too long for some screen.
    
       int padding = (config.screen_cols - welcome_length) / 2;
-      if (padding == 1)
+      if (padding)
       {
         ab->append("~");
         padding--;
@@ -192,17 +239,25 @@ void editorRefreshScreen()
   ab.append("\x1b[?25l"); // hides the cursor
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   editorDrawRows(&ab);
+  
+  char buf[32];
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", config.cursor_y + 1, config.cursor_x + 1);
+  ab.append(buf);
 
-  ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   ab.append("\x1b[?25h"); // shows the cursor
   write(STDOUT_FILENO, ab.data(), ab.length());
 }
 
 //==========================================================================================================
+// terminal init
 //==========================================================================================================
 
 void initEditor() 
 {
+  // set the x and y coordinates to 0,0
+  config.cursor_x = 0; 
+  config.cursor_y = 0;
+
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 }
 
