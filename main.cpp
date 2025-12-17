@@ -339,7 +339,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 
   for (y = 0; y < config.screen_rows; y++) 
   {
-    if(y >= config.screen_rows)
+    if(y >= config.num_rows)
     {
 
       if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
