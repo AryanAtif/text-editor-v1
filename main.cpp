@@ -274,6 +274,16 @@ void editorRowInsertChar (editor_row *row, int at, int c)  // the row where to p
   config.changes++;
 }
 
+void editorRowDelChar(editor_row *row, int at) 
+{
+  if (at < 0 || at >= row->size) {return;}
+
+  memmove(&row->chars[at], &row->chars[at + 1], row->size - at);
+  row->size--;
+  editorUpdateRow(row);
+
+  config.changes++;
+}
 
 //==========================================================================================================
 /**** Editor Operations ****/
@@ -288,6 +298,18 @@ void editorInsertChar(int c)
   }
   editorRowInsertChar(&config.row[config.cursor_y], config.cursor_x, c);
   config.cursor_x++;
+}
+
+void editorDelChar()
+{
+  if (config.cursor_y == config.num_rows) {return;}
+  
+  editor_row *row = &config.row[config.cursor_y];
+  if (config.cursor_x > 0)
+  {
+    editorRowDelChar(row, config.cursor_x - 1);
+    config.cursor_x--;
+  }
 }
 
 //==========================================================================================================
@@ -503,8 +525,8 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
     case BACKSPACE:
     case CTRL_KEY('h'):
     case DEL_KEY:
-
-      //todo;:::
+      if (c == DEL_KEY) {editorMoveCursor(ARROW_RIGHT);}
+      editorDelChar();
       break;
 
 
