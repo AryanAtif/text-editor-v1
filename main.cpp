@@ -236,11 +236,13 @@ void editorUpdateRow(editor_row *row)
   row->r_size = idx;
 }
 
-void editor_append_row(std::string& s, size_t len)
+void editor_insert_row(int at, std::string& s, size_t len)
 {
+  if (at < 0 || at > config.num_rows) {return;}
+
   config.row = (editor_row*) realloc(config.row, sizeof(editor_row) * (config.num_rows + 1));
-  
-  int at  = config.num_rows;
+  memmove(&config.row[at + 1], &config.row[at], sizeof(editor_row) * (config.num_rows - at)); 
+
   config.row[at].size = len;
 
   config.row[at].chars = new char[len + 1];
@@ -294,7 +296,7 @@ void editorInsertChar(int c)
   if (config.cursor_y == config.num_rows)  // if the cursor's at the end of the line 
   {
     std::string null_str = "";
-    editor_append_row(null_str, 0);
+    editor_insert_row(config.num_rows, null_str, 0);
   }
   editorRowInsertChar(&config.row[config.cursor_y], config.cursor_x, c);
   config.cursor_x++;
@@ -340,7 +342,7 @@ void editorOpen(std::string& filename)
     {
       linelen--;
     }
-    editor_append_row(line, linelen);
+    editor_insert_row(config.num_rows, line, linelen);
 
   }
 
