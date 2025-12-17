@@ -5,6 +5,7 @@
 #define _BSD_SOURCE
 #define _GNU_SOURCE
 
+#include <fcntl.h>
 #include <stdarg.h>
 #include <time.h>
 #include <unistd.h>
@@ -32,6 +33,7 @@
 
 enum cursor_movement
 {
+  BACKSPACE = 127,
   ARROW_LEFT = 1000,
   ARROW_DOWN,
   ARROW_UP,
@@ -317,6 +319,45 @@ void editorOpen(std::string& filename)
 }
 
 
+char *editorRowsToString(int *buffer_len)  // reads the row of the files and converts them into strings
+{
+  int total_len = 0;
+  int j;
+  for (j = 0; j < config.num_rows; j++)
+  {
+    total_len += config.row[j].size + 1;
+  }
+
+  *buffer_len = total_len;
+  char *buf = (char *) malloc(total_len);
+  char *p = buf;
+
+  for (j = 0; j < config.num_rows; j++) 
+  {
+    memcpy(p, config.row[j].chars, config.row[j].size);
+    p += config.row[j].size; 
+    *p = '\n';
+    p++;
+  }
+  return buf;
+}
+
+
+void editorSave()
+{
+  if (config.filename == NULL) return;
+
+  int len;
+  char *buf = editorRowsToString(&len);
+
+  int fd = open(config.filename, O_RDWR | O_CREAT, 0644);  // open the <filename> with read/write perms, or create it, if it doesn't' exit
+  ftruncate(fd, len); 
+  write(fd, buf, len);
+  close(fd);
+  free(buf);
+}
+
+
 //==========================================================================================================
 /**** AppendBuffer class (Custom String) ****/
 //==========================================================================================================
@@ -399,6 +440,10 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 
   switch (c)
   {
+    case '\r':
+      // todo;;;
+      break;
+
 
     case CTRL_KEY('q'):
         // To clear the screen
@@ -406,6 +451,10 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
       
       exit(0);
+      break;
+
+    case CTRL_KEY('s'):
+      editorSave();
       break;
 
     // Home/End Key operations
@@ -418,6 +467,15 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
         config.cursor_x = config.row[config.cursor_y].size;
       config.cursor_x = config.screen_cols - 1; // move the cursor at the end of the line
       break;
+
+    // backspace/del operations
+    case BACKSPACE:
+    case CTRL_KEY('h'):
+    case DEL_KEY:
+
+      //todo;:::
+      break;
+
 
 
     // Page up/down operations 
@@ -443,6 +501,17 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
     case ARROW_LEFT:
     case ARROW_RIGHT:
       editorMoveCursor(c);
+      break;
+
+
+    // for ctrl+l and an escape sequence
+    case CTRL_KEY('l'):
+    case '\x1b':
+      break;
+
+    // print characters like a normal texteditor ahhhhhhhhhhhh
+    default:
+      editorInsertChar(c);
       break;
   }
 }
