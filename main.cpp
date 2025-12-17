@@ -50,6 +50,7 @@ enum cursor_movement
 //==========================================================================================================
 
 void editorRefreshScreen();
+void editorSetStatusMessage(const char *fmt, ...);
 
 //==========================================================================================================
 /**** Data ****/
@@ -68,8 +69,8 @@ class Editor_config
 {
   public:
     int cursor_x, cursor_y; // the x and y coordinates of the cursor
-    int row_offset;         // tells what would be the first line of the file that the editor shows
-    int col_offset;         // 
+    int row_offset;         
+    int col_offset;          
     int screen_rows;
     int screen_cols;
     int num_rows;
@@ -77,6 +78,7 @@ class Editor_config
     char statusmsg[80];
     time_t statusmsg_time;
     editor_row *row;
+    int changes;
 
     termios og_termios;   // an object of the class "termios"
 };
@@ -251,6 +253,8 @@ void editor_append_row(std::string& s, size_t len)
   
   config.num_rows++;
 
+  config.changes++;
+
 }
 
 void editorRowInsertChar (editor_row *row, int at, int c)  // the row where to put char, at what index, the char to be inserted
@@ -265,6 +269,8 @@ void editorRowInsertChar (editor_row *row, int at, int c)  // the row where to p
   row->size++; // increase the size of the row by one char
   row->chars[at] = c; // insert the char at the place of the cursor
   editorUpdateRow(row);
+  
+  config.changes++;
 }
 
 
@@ -316,6 +322,8 @@ void editorOpen(std::string& filename)
   }
 
   file.close();
+
+  config.changes = 0;
 }
 
 
@@ -351,9 +359,21 @@ void editorSave()
   char *buf = editorRowsToString(&len);
 
   int fd = open(config.filename, O_RDWR | O_CREAT, 0644);  // open the <filename> with read/write perms, or create it, if it doesn't' exit
-  ftruncate(fd, len); 
-  write(fd, buf, len);
-  close(fd);
+  if (fd != -1) 
+  {
+    if (ftruncate(fd, len) != -1) 
+    {
+      if (write(fd, buf, len) == len) 
+      {
+        close(fd);
+        free(buf);
+        editorSetStatusMessage("%d bytes written to disk", len);
+        return;
+      }
+    }
+    close(fd);
+  }
+  editorSetStatusMessage("Can't save! I/O error: %s", strerror(errno));
   free(buf);
 }
 
@@ -597,8 +617,8 @@ void editorDrawStatusBar(AppendBuffer *ab)
                          
   char status[80], rstatus[80];
 
-  // put the filename (if there's any) on the status bar and the number of line in that file
-  int len = snprintf(status, sizeof(status), "%.20s - %d lines", config.filename ? config.filename : "[No Name]", config.num_rows);
+  // put the filename (if there's any) on the status bar and the number of line in that file && if the file has been mod'd or not
+  int len = snprintf(status, sizeof(status), "%.20s - %d lines %s", config.filename ? config.filename : "[No Name]", config.num_rows, config.changes ? "(modified)" : "");
 
   // show: the row where the cursor is rn>/<total num of rows>
   int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d", config.cursor_y + 1, config.num_rows);
@@ -680,6 +700,7 @@ void initEditor()
   config.filename = NULL;
   config.statusmsg[0] = '\0';
   config.statusmsg_time = 0;
+  config.changes = 0;
 
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
   config.screen_rows -= 2;
@@ -697,7 +718,7 @@ int main(int argc, char *argv[])
       editorOpen(filename);
     }
     
-    editorSetStatusMessage("Controls: Ctrl-Q = quit");
+    editorSetStatusMessage("Controls: Ctrl-S = Save | Ctrl-Q = quit");
     
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
     {
