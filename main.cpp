@@ -28,6 +28,7 @@ enum cursor_movement
   ARROW_DOWN,
   ARROW_UP,
   ARROW_RIGHT,
+  DEL_KEY,
   PAGE_UP,
   PAGE_DOWN,
   HOME_KEY,
@@ -118,6 +119,7 @@ int editorReadKey()  //editorReadKey()’s job is to wait for one keypress, and 
           switch (seq[1]) 
           {
             case '1': return HOME_KEY;
+            case '3': return DEL_KEY;
             case '4': return END_KEY;
             case '5': return PAGE_UP;
             case '6': return PAGE_DOWN;
