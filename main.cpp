@@ -268,9 +268,10 @@ public:
 
 void editorMoveCursor(int key) 
 {
+  editor_row *row = (config.cursor_y >= config.num_rows) ? NULL : &config.row[config.cursor_y];
   switch (key)
   {
-   case ARROW_LEFT:
+    case ARROW_LEFT:
       if (config.cursor_x != 0)
       {
         config.cursor_x--;
@@ -278,8 +279,11 @@ void editorMoveCursor(int key)
       break;
 
     case ARROW_RIGHT:
-        config.cursor_x++;
-      break;
+       if (row && E.cx < row->size) 
+       {       
+         config.cursor_x++;
+       }      
+       break;
 
     case ARROW_UP:
       if (config.cursor_y != 0)
