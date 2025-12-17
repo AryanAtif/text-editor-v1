@@ -59,9 +59,6 @@ class editor_row
     int r_size;
     char *chars;
     char *render;
-    std::string filename;
-    char statusmsg[80];
-    time_t statusmsg_time;
 };
 
 class Editor_config
@@ -73,6 +70,9 @@ class Editor_config
     int screen_rows;
     int screen_cols;
     int num_rows;
+    char* filename;
+    char statusmsg[80];
+    time_t statusmsg_time;
     editor_row *row;
 
     termios og_termios;   // an object of the class "termios"
@@ -202,7 +202,7 @@ int getWindowSize(int *rows, int *cols)
 /**** Row Operations ****/
 //==========================================================================================================
 
-void editorUpdateRow(erow *row) 
+void editorUpdateRow(editor_row *row) 
 {
   int tabs = 0;
   int j;
@@ -211,7 +211,7 @@ void editorUpdateRow(erow *row)
   { if (row->chars[j] == '\t') tabs++; } // read the number of tabs in the row
 
   free(row->render);
-  row->render = malloc(row->size + tabs*(TAB_SIZE - 1) + 1);  // alloc the render the size of the row plus <no. of tabs>*<spaces for tab> plus \0
+  row->render = (char *) malloc(row->size + tabs*(TAB_SIZE - 1) + 1);  // alloc the render the size of the row plus <no. of tabs>*<spaces for tab> plus \0
  
   int idx = 0;
   for (j = 0; j < row->size; j++) 
@@ -227,7 +227,7 @@ void editorUpdateRow(erow *row)
     }
   }
   row->render[idx] = '\0';
-  row->rsize = idx;
+  row->r_size = idx;
 }
 
 void editor_append_row(std::string& s, size_t len)
@@ -258,7 +258,7 @@ void editor_append_row(std::string& s, size_t len)
 void editorOpen(std::string& filename) 
 {  
   free(config.filename);
-  config.filename = strdup(filename);  // duplicate the filename from the function argument to the config
+  config.filename = strdup(filename.c_str());  // duplicate the filename from the function argument to the config
 
   std::ifstream file (filename);
 
@@ -499,12 +499,12 @@ void editorDrawStatusBar(AppendBuffer *ab)
   char status[80], rstatus[80];
 
   // put the filename (if there's any) on the status bar and the number of line in that file
-  int len = snprintf(status, sizeof(status), "%.20s - %d lines", config.filename ? config.filename : "[No Name]", config.num_rows
+  int len = snprintf(status, sizeof(status), "%.20s - %d lines", config.filename ? config.filename : "[No Name]", config.num_rows);
 
   // show: the row where the cursor is rn>/<total num of rows>
   int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d", config.cursor_y + 1, config.num_rows);
 
-  if (len > config.screen_cols) {len = config.screencols};
+  if (len > config.screen_cols) {len = config.screen_cols;}
     
   ab->append(status);
 
