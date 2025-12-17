@@ -5,6 +5,7 @@
 #define _BSD_SOURCE
 #define _GNU_SOURCE
 
+#include <time.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <sys/types.h>
@@ -58,6 +59,9 @@ class editor_row
     int r_size;
     char *chars;
     char *render;
+    std::string filename;
+    char statusmsg[80];
+    time_t statusmsg_time;
 };
 
 class Editor_config
@@ -251,9 +255,12 @@ void editor_append_row(std::string& s, size_t len)
 /**** File I/O ****/
 //==========================================================================================================
 
-void editorOpen(std::string& file_name) 
-{
-  std::ifstream file (file_name);
+void editorOpen(std::string& filename) 
+{  
+  free(config.filename);
+  config.filename = strdup(filename);  // duplicate the filename from the function argument to the config
+
+  std::ifstream file (filename);
 
   if(!file.is_open())
   {
@@ -485,6 +492,39 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
   }
 }
 
+void editorDrawStatusBar(AppendBuffer *ab) 
+{
+  ab->append("\x1b[7m"); // invert the colors (from w on b to b on w)
+                         
+  char status[80], rstatus[80];
+
+  // put the filename (if there's any) on the status bar and the number of line in that file
+  int len = snprintf(status, sizeof(status), "%.20s - %d lines", config.filename ? config.filename : "[No Name]", config.num_rows
+
+  // show: the row where the cursor is rn>/<total num of rows>
+  int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d", config.cursor_y + 1, config.num_rows);
+
+  if (len > config.screen_cols) {len = config.screencols};
+    
+  ab->append(status);
+
+  while (len < config.screen_cols)  
+  {
+    if (config.screen_cols - len == rlen) // do this while there is space for rstatus to be put at the status bar 
+    {
+      ab->append(rstatus);
+      break;
+    }
+    else 
+    {
+      ab->append(" ");
+      len++;
+    }
+  }
+  ab->append("\x1b[m");  // get the normal colors back
+}
+
+
 void editorRefreshScreen() 
 {
   editorScroll();
@@ -494,6 +534,7 @@ void editorRefreshScreen()
   ab.append("\x1b[?25l"); // hides the cursor
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   editorDrawRows(&ab);
+  editorDrawStatusBar(&ab);
   
   char buf[32];
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (config.cursor_y - config.row_offset) + 1, (config.cursor_x - config.row_offset) + 1);
@@ -516,6 +557,9 @@ void initEditor()
   config.col_offset = 0; // so that we start off at the first col 
   config.num_rows = 0;
   config.row = NULL;
+  config.filename = NULL;
+  config.statusmsg[0] = '\0';
+  config.statusmsg_time = 0;
 
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
   config.screen_rows -= 1;
@@ -530,8 +574,8 @@ int main(int argc, char *argv[])
     
     if (argc >= 2) 
     {
-      std::string file_name (argv[1]);
-      editorOpen(file_name);
+      std::string filename (argv[1]);
+      editorOpen(filename);
     }
     
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
