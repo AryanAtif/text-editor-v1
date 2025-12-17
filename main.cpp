@@ -30,6 +30,7 @@
 
 #define VERSION  "1.0"
 #define TAB_SIZE 8
+#define QUIT_TIMES 3
 
 enum cursor_movement
 {
@@ -459,6 +460,8 @@ void editorMoveCursor(int key)
 
 void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, and then handles it.
 {
+  static int quit_times = QUIT_TIMES;
+
   int c = editorReadKey();
 
   switch (c)
@@ -469,7 +472,12 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 
 
     case CTRL_KEY('q'):
-        // To clear the screen
+      if (config.changes && quit_times > 0) {
+        editorSetStatusMessage("WARNING!!! File has unsaved changes. Press Ctrl-Q %d more times to quit.", quit_times);
+        quit_times--;
+        return;
+      } 
+             // To clear the screen
       write(STDOUT_FILENO, "\x1b[2J", 4); // Clears the terminal
       write(STDOUT_FILENO, "\x1b[H", 3);  // Moves the cursor at the top-left of the terminal
       
@@ -537,6 +545,8 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       editorInsertChar(c);
       break;
   }
+
+  quit_times = QUIT_TIMES;
 }
 
 
