@@ -62,6 +62,7 @@ class Editor_config
   public:
     int cursor_x, cursor_y; // the x and y coordinates of the cursor
     int row_offset;         // tells what would be the first line of the file that the editor shows
+    int col_offset;         // 
     int screen_rows;
     int screen_cols;
     int num_rows;
@@ -421,7 +422,7 @@ void editorRefreshScreen()
   editorDrawRows(&ab);
   
   char buf[32];
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", config.cursor_y + 1, config.cursor_x + 1);
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (config.cursor_y - config.row_offset)+ 1, config.cursor_x + 1);
   ab.append(buf);
 
   ab.append("\x1b[?25h"); // shows the cursor
