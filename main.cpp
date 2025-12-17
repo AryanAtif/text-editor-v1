@@ -251,6 +251,35 @@ void editor_append_row(std::string& s, size_t len)
 
 }
 
+void editorRowInsertChar (editor_row *row, int at, int c)  // the row where to put char, at what index, the char to be inserted
+{
+  if (at < 0 || at > row->size) {at = row->size;} 
+
+  row->chars = (char *)realloc(row->chars, row->size + 2);
+  
+  // to take the chars in the row from "at" and paste them to "at +1" || move the char from where the cursor is rn, one char ahead
+  memmove(&row->chars[at + 1], &row->chars[at], row->size - at + 1); 
+
+  row->size++; // increase the size of the row by one char
+  row->chars[at] = c; // insert the char at the place of the cursor
+  editorUpdateRow(row);
+}
+
+
+//==========================================================================================================
+/**** Editor Operations ****/
+//==========================================================================================================
+
+void editorInsertChar(int c) 
+{
+  if (config.cursor_y == config.num_rows)  // if the cursor's at the end of the line 
+  {
+    std::string null_str = "";
+    editor_append_row(null_str, 0);
+  }
+  editorRowInsertChar(&config.row[config.cursor_y], config.cursor_x, c);
+  config.cursor_x++;
+}
 
 //==========================================================================================================
 /**** File I/O ****/
