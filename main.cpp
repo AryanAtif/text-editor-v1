@@ -279,7 +279,7 @@ void editorMoveCursor(int key)
       break;
 
     case ARROW_RIGHT:
-       if (row && E.cx < row->size) 
+       if (row && config.cursor_x < row->size) 
        {       
          config.cursor_x++;
        }      
@@ -298,6 +298,14 @@ void editorMoveCursor(int key)
         config.cursor_y++;
       }
       break;
+  }
+
+  // don't let the user move past the last character of each line
+  row = (config.cursor_y >= config.num_rows) ? NULL : &config.row[config.cursor_y];
+  int row_length = row ? row->size : 0; // if the "row" isn't null
+  if (config.cursor_x > row_length) 
+  {
+    config.cursor_x = row_length;
   }
 }
 
@@ -409,7 +417,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
       int len = config.row[file_row].size - config.col_offset;
       if (len < 0) {len = 0;}
       if (len > config.screen_cols) len = config.screen_cols;
-      ab->append(config.row[file_row].chars[col_offset]); 
+      ab->append(std::string_view(config.row[file_row].chars + config.col_offset, len)); 
     }
 
 
