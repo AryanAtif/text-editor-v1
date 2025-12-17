@@ -278,10 +278,7 @@ void editorMoveCursor(int key)
       break;
 
     case ARROW_RIGHT:
-      if (config.cursor_x != (config.screen_cols -1))
-      {
         config.cursor_x++;
-      }
       break;
 
     case ARROW_UP:
@@ -358,7 +355,16 @@ void editorScroll()
   {
     config.row_offset = config.cursor_y - config.screen_rows + 1;  // set row offset to one plus the difference between the where the cursor is right now and the height of the screen
   }
+  if (config.cursor_x < config.col_offset) 
+  {
+    config.col_offset = config.cursor_x;
+  }
+  if (config.cursor_x >= config.col_offset + config.screen_cols) 
+  {
+    config.col_offset = config.cursor_x - config.screen_cols + 1;
+  }
 }
+
 
 
 void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
@@ -396,9 +402,10 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
     }
     else 
     {
-      int len = config.row[file_row].size;
+      int len = config.row[file_row].size - config.col_offset;
+      if (len < 0) {len = 0;}
       if (len > config.screen_cols) len = config.screen_cols;
-      ab->append(config.row[file_row].chars); 
+      ab->append(config.row[file_row].chars[col_offset]); 
     }
 
 
@@ -439,6 +446,7 @@ void initEditor()
   config.cursor_x = 0; 
   config.cursor_y = 0;
   config.row_offset = 0; // so that we start off at the first row 
+  config.col_offset = 0; // so that we start off at the first col 
   config.num_rows = 0;
   config.row = NULL;
 
