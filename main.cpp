@@ -5,6 +5,7 @@
 #define _BSD_SOURCE
 #define _GNU_SOURCE
 
+#include <stdarg.h>
 #include <time.h>
 #include <unistd.h>
 #include <cstdlib>
@@ -510,7 +511,7 @@ void editorDrawStatusBar(AppendBuffer *ab)
 
   while (len < config.screen_cols)  
   {
-    if (config.screen_cols - len == rlen) // do this while there is space for rstatus to be put at the status bar 
+    if (config.screen_cols - len == rlen) // do this while there is space for rstatus to be put out at the status bar 
     {
       ab->append(rstatus);
       break;
@@ -522,8 +523,20 @@ void editorDrawStatusBar(AppendBuffer *ab)
     }
   }
   ab->append("\x1b[m");  // get the normal colors back
+  ab->append("\r\n"); // add a new line (to print status messages)
 }
 
+
+void editorDrawMessageBar(AppendBuffer *ab) 
+{
+  ab->append("\x1b[K");
+
+  int msglen = strlen(config.statusmsg);
+
+  if (msglen > config.screen_cols) {msglen = config.screen_cols;}
+  if (msglen && time(NULL) - config.statusmsg_time < 5)
+    ab->append(config.statusmsg);
+}
 
 void editorRefreshScreen() 
 {
@@ -535,6 +548,7 @@ void editorRefreshScreen()
   ab.append("\x1b[H");  // Moves the cursor at the top-left of the terminal
   editorDrawRows(&ab);
   editorDrawStatusBar(&ab);
+  editorDrawMessageBar(&ab);
   
   char buf[32];
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (config.cursor_y - config.row_offset) + 1, (config.cursor_x - config.row_offset) + 1);
@@ -544,6 +558,14 @@ void editorRefreshScreen()
   write(STDOUT_FILENO, ab.data(), ab.length());
 }
 
+void editorSetStatusMessage(const char *fmt, ...) 
+{
+  va_list ap;
+  va_start(ap, fmt);
+  vsnprintf(config.statusmsg, sizeof(config.statusmsg), fmt, ap);
+  va_end(ap);
+  config.statusmsg_time = time(NULL);
+}
 //==========================================================================================================
 // terminal init
 //==========================================================================================================
@@ -562,7 +584,7 @@ void initEditor()
   config.statusmsg_time = 0;
 
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
-  config.screen_rows -= 1;
+  config.screen_rows -= 2;
 }
 
 int main(int argc, char *argv[]) 
@@ -571,12 +593,13 @@ int main(int argc, char *argv[])
   {
     enter_raw_mode();
     initEditor();
-    
     if (argc >= 2) 
     {
       std::string filename (argv[1]);
       editorOpen(filename);
     }
+    
+    editorSetStatusMessage("Controls: Ctrl-Q = quit");
     
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
     {
