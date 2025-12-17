@@ -64,7 +64,7 @@ class Editor_config
     int screen_rows;
     int screen_cols;
     int num_rows;
-    editor_row row;
+    editor_row *row;
 
     termios og_termios;   // an object of the class "termios"
 };
@@ -190,6 +190,25 @@ int getWindowSize(int *rows, int *cols)
 }
 
 //==========================================================================================================
+/**** Row Operations ****/
+//==========================================================================================================
+void editor_append_row(std::string& s, size_t len)
+{
+  config.row = (editor_row*) realloc(config.row, sizeof(editor_row) * (config.num_rows + 1));
+  
+  int at  = config.num_rows;
+  config.row[at].size = len;
+
+  config.row[at].chars = new char[len + 1];
+  std::memcpy(config.row[at].chars, s.c_str(), len + 1);
+
+  config.row[at].chars[len] = '\0';
+
+  config.num_rows++;
+}
+
+
+//==========================================================================================================
 /**** File I/O ****/
 //==========================================================================================================
 
@@ -203,27 +222,18 @@ void editorOpen(std::string& file_name)
   }
 
   std::string line;
-  ssize_t linelen;
+  ssize_t linelen = 0 ;
   size_t linecap = 0;
 
-  std::getline(file, line);
-  linelen = line.size();
-  
-  if (linelen != -1) 
+  while (std::getline(file, line))
   {
+    linelen = line.size();
+  
     while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r'))
     {
       linelen--;
     }
-  
-    config.row.size = linelen;
-
-    config.row.chars = new char[linelen + 1];
-    std::memcpy(config.row.chars, line.c_str(), linelen + 1);
-
-    config.row.chars[linelen] = '\0';
-
-    config.num_rows = 1;
+    editor_append_row(line, linelen);
 
   }
 
@@ -370,9 +380,9 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
     }
     else 
     {
-      int len = config.row.size;
+      int len = config.row[y].size;
       if (len > config.screen_cols) len = config.screen_cols;
-      ab->append(config.row.chars); 
+      ab->append(config.row[y].chars); 
     }
 
 
@@ -411,6 +421,7 @@ void initEditor()
   config.cursor_x = 0; 
   config.cursor_y = 0;
   config.num_rows = 0;
+  config.row = NULL;
 
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 }
