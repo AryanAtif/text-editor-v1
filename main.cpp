@@ -1,6 +1,9 @@
 //==========================================================================================================
 /**** The Header files ****/
 //==========================================================================================================
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
 
 #include <unistd.h>
 #include <cstdlib>
@@ -342,7 +345,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
     if(y >= config.num_rows)
     {
 
-      if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
+      if(config.num_rows == 0 && y == config.screen_rows / 3)  // when we've read NO lines and the "y" is exactly at the 1/3 of the terminal's height
       {
         char welcome [50];
         int welcome_length = snprintf(welcome, sizeof(welcome), "Text editor -- version %s", VERSION);
