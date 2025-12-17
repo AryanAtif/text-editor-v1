@@ -26,6 +26,7 @@
 #define CTRL_KEY(k) ((k) & 0x1f) // Define Ctrl+<anyKey> to be 00011111 (which behaves on terminal as ctrl + <anykey>)
 
 #define VERSION  "1.0"
+#define TAB_SIZE 8
 
 enum cursor_movement
 {
@@ -199,13 +200,27 @@ int getWindowSize(int *rows, int *cols)
 
 void editorUpdateRow(erow *row) 
 {
-  row->render = NULL;
-  row->render = malloc(row->size + 1);
-
+  int tabs = 0;
   int j;
+
+  for (j = 0; j < row->size; j++)
+  { if (row->chars[j] == '\t') tabs++; } // read the number of tabs in the row
+
+  free(row->render);
+  row->render = malloc(row->size + tabs*(TAB_SIZE - 1) + 1);  // alloc the render the size of the row plus <no. of tabs>*<spaces for tab> plus \0
+ 
   int idx = 0;
-  for (j = 0; j < row->size; j++) {
-    row->render[idx++] = row->chars[j]; // copy the contents of row.chars into row.render
+  for (j = 0; j < row->size; j++) 
+  {
+    if (row->chars[j] == '\t') 
+    {
+      row->render[idx++] = ' ';
+      while (idx % TAB_SIZE != 0) {row->render[idx++] = ' ';} // keep printing " " unless the idx doesn't become the multiple of 8 (aka 8 spaces)
+    }
+    else
+    {
+      row->render[idx++] = row->chars[j]; // copy the contents of row.chars into row.render
+    }
   }
   row->render[idx] = '\0';
   row->rsize = idx;
@@ -446,7 +461,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
     }
     else 
     {
-      int len = config.row[file_row].rsize - config.col_offset;
+      int len = config.row[file_row].r_size - config.col_offset;
       if (len < 0) {len = 0;}
       if (len > config.screen_cols) len = config.screen_cols;
       ab->append(std::string_view(config.row[file_row].render + config.col_offset, len)); 
