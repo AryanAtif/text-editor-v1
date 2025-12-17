@@ -54,7 +54,9 @@ class editor_row
 {
   public:
     int size;
+    int r_size;
     char *chars;
+    char *render;
 };
 
 class Editor_config
@@ -194,6 +196,21 @@ int getWindowSize(int *rows, int *cols)
 //==========================================================================================================
 /**** Row Operations ****/
 //==========================================================================================================
+
+void editorUpdateRow(erow *row) 
+{
+  row->render = NULL;
+  row->render = malloc(row->size + 1);
+
+  int j;
+  int idx = 0;
+  for (j = 0; j < row->size; j++) {
+    row->render[idx++] = row->chars[j]; // copy the contents of row.chars into row.render
+  }
+  row->render[idx] = '\0';
+  row->rsize = idx;
+}
+
 void editor_append_row(std::string& s, size_t len)
 {
   config.row = (editor_row*) realloc(config.row, sizeof(editor_row) * (config.num_rows + 1));
@@ -206,7 +223,12 @@ void editor_append_row(std::string& s, size_t len)
 
   config.row[at].chars[len] = '\0';
 
+  config.row[at].r_size = 0;
+  config.row[at].render = NULL;
+  editorUpdateRow(&config.row[at]);
+  
   config.num_rows++;
+
 }
 
 
@@ -424,10 +446,10 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
     }
     else 
     {
-      int len = config.row[file_row].size - config.col_offset;
+      int len = config.row[file_row].rsize - config.col_offset;
       if (len < 0) {len = 0;}
       if (len > config.screen_cols) len = config.screen_cols;
-      ab->append(std::string_view(config.row[file_row].chars + config.col_offset, len)); 
+      ab->append(std::string_view(config.row[file_row].render + config.col_offset, len)); 
     }
 
 
