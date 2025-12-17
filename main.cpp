@@ -61,6 +61,7 @@ class Editor_config
 {
   public:
     int cursor_x, cursor_y; // the x and y coordinates of the cursor
+    int row_offset;         // tells what would be the first line of the file that the editor shows
     int screen_rows;
     int screen_cols;
     int num_rows;
@@ -290,7 +291,7 @@ void editorMoveCursor(int key)
       break;
 
     case ARROW_DOWN:
-      if (config.cursor_y != (config.screen_rows -1))
+      if (config.cursor_y < config.num_rows)  // if the current y position of the cursor is less than the num of line present in the file that's to be read, meaning that the body will be executed whenever there's still any line left in the file.
       {
         config.cursor_y++;
       }
@@ -345,6 +346,19 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
 //==========================================================================================================
 /*** Output Operations ***/
 //==========================================================================================================
+void editorScroll() 
+{
+  if (config.cursor_y < config.row_offset)    // whenever the cursor is above the rowoffset
+  {
+    config.row_offset = config.cursor_y;      // set offset to the row where the cursor is right now (aka go back)
+  }
+
+  if (config.cursor_y >= config.row_offset + config.screen_rows)   // if the cursor is at the last visible line of the editor
+  {
+    config.row_offset = config.cursor_y - config.screen_rows + 1;  // set row offset to one plus the difference between the where the cursor is right now and the height of the screen
+  }
+}
+
 
 void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 {
@@ -352,7 +366,8 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 
   for (y = 0; y < config.screen_rows; y++) 
   {
-    if(y >= config.num_rows)
+    int file_row  = y + config.row_offset;
+    if(file_row >= config.num_rows)
     {
 
       if(config.num_rows == 0 && y == config.screen_rows / 3)  // when we've read NO lines and the "y" is exactly at the 1/3 of the terminal's height
@@ -380,9 +395,9 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
     }
     else 
     {
-      int len = config.row[y].size;
+      int len = config.row[file_row].size;
       if (len > config.screen_cols) len = config.screen_cols;
-      ab->append(config.row[y].chars); 
+      ab->append(config.row[file_row].chars); 
     }
 
 
@@ -397,6 +412,8 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 
 void editorRefreshScreen() 
 {
+  editorScroll();
+
   AppendBuffer ab;
 
   ab.append("\x1b[?25l"); // hides the cursor
@@ -420,6 +437,7 @@ void initEditor()
   // set the x and y coordinates to 0,0
   config.cursor_x = 0; 
   config.cursor_y = 0;
+  config.row_offset = 0; // so that we start off at the first row 
   config.num_rows = 0;
   config.row = NULL;
 
