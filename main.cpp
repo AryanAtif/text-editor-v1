@@ -367,6 +367,9 @@ void editorSave()
       {
         close(fd);
         free(buf);
+
+        config.changes = 0;
+
         editorSetStatusMessage("%d bytes written to disk", len);
         return;
       }
