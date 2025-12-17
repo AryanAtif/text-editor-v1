@@ -276,6 +276,11 @@ void editorMoveCursor(int key)
       {
         config.cursor_x--;
       }
+      else if (config.cursor_y > 0)  // when the right arrow is pressed at the far-left character of a row, move the cursor to the far-right of the row above 
+      {
+        config.cursor_y--;
+        config.cursor_x = config.row[config.cursor_y].size;
+      }
       break;
 
     case ARROW_RIGHT:
@@ -283,10 +288,10 @@ void editorMoveCursor(int key)
       {       
         config.cursor_x++;
       }
-      else if (E.cy > 0)  // when the right arrow is pressed at the far-left character of a row, move the cursor to the far-right of the row above 
+      else if (row && config.cursor_x == row->size) // move the cursor to the beginning of the next line when right arrow is press at the end of the currect line 
       {
-        config.cursor_y--;
-        config.cursor_x = config.row[config.cursor_y].size;
+        config.cursor_y++;
+        config.cursor_x = 0;
       }
       break;
 
