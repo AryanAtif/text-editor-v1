@@ -279,11 +279,16 @@ void editorMoveCursor(int key)
       break;
 
     case ARROW_RIGHT:
-       if (row && config.cursor_x < row->size) 
-       {       
-         config.cursor_x++;
-       }      
-       break;
+      if (row && config.cursor_x < row->size) 
+      {       
+        config.cursor_x++;
+      }
+      else if (E.cy > 0)  // when the right arrow is pressed at the far-left character of a row, move the cursor to the far-right of the row above 
+      {
+        config.cursor_y--;
+        config.cursor_x = config.row[config.cursor_y].size;
+      }
+      break;
 
     case ARROW_UP:
       if (config.cursor_y != 0)
