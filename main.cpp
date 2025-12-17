@@ -4,9 +4,11 @@
 
 #include <unistd.h>
 #include <cstdlib>
+#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cctype>
 #include <cstring>
@@ -42,8 +44,15 @@ enum cursor_movement
 void editorRefreshScreen();
 
 //==========================================================================================================
-/**** The Operations on the terminal ****/
+/**** Data ****/
 //==========================================================================================================
+
+class editor_row
+{
+  public:
+    int size;
+    char *chars;
+};
 
 class Editor_config
 {
@@ -51,12 +60,18 @@ class Editor_config
     int cursor_x, cursor_y; // the x and y coordinates of the cursor
     int screen_rows;
     int screen_cols;
+    int num_rows;
+    editor_row row;
 
     termios og_termios;   // an object of the class "termios"
 };
 
 Editor_config config; // global object for the editor config
 
+
+//==========================================================================================================
+/**** The Operations on the terminal ****/
+//==========================================================================================================
 void exit_raw_mode()
 {
   if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &config.og_termios) == -1) 
@@ -171,6 +186,47 @@ int getWindowSize(int *rows, int *cols)
   }
 }
 
+//==========================================================================================================
+/**** File I/O ****/
+//==========================================================================================================
+
+void editorOpen(std::string& file_name) 
+{
+  std::ifstream file (file_name);
+
+  if(!file.is_open())
+  {
+    throw std::runtime_error(std::string("File Read Error:") + std::strerror(errno));
+  }
+
+  std::string line;
+  ssize_t linelen;
+  size_t linecap = 0;
+
+  std::getline(file, line);
+  linelen = line.size();
+  
+  if (linelen != -1) 
+  {
+    while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r'))
+    {
+      linelen--;
+    }
+  
+    config.row.size = linelen;
+
+    config.row.chars = new char[linelen + 1];
+    std::memcpy(config.row.chars, line.c_str(), linelen + 1);
+
+    config.row.chars[linelen] = '\0';
+
+    config.num_rows = 1;
+
+  }
+
+  file.close();
+}
+
 
 //==========================================================================================================
 /**** AppendBuffer class (Custom String) ****/
@@ -283,28 +339,39 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 
   for (y = 0; y < config.screen_rows; y++) 
   {
-    if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
+    if(y >= config.screen_rows)
     {
-      char welcome [50];
-      int welcome_length = snprintf(welcome, sizeof(welcome), "Text editor -- version %s", VERSION);
+
+      if(y == config.screen_rows / 3)  // when the "y" is exactly at the 1/3 of the terminal's height
+      {
+        char welcome [50];
+        int welcome_length = snprintf(welcome, sizeof(welcome), "Text editor -- version %s", VERSION);
 
 
-      if(welcome_length > config.screen_cols) { welcome_length = config.screen_cols; } // When the welcome message is too long for some screen.
-   
-      int padding = (config.screen_cols - welcome_length) / 2;
-      if (padding)
+        if(welcome_length > config.screen_cols) { welcome_length = config.screen_cols; } // When the welcome message is too long for some screen.
+     
+        int padding = (config.screen_cols - welcome_length) / 2;
+        if (padding)
+        {
+          ab->append("~");
+          padding--;
+        }
+        while (padding--) { ab->append(" "); }
+
+        ab->append(welcome);
+      }
+      else
       {
         ab->append("~");
-        padding--;
       }
-      while (padding--) { ab->append(" "); }
-
-      ab->append(welcome);
     }
-    else
+    else 
     {
-      ab->append("~");
+      int len = config.row.size;
+      if (len > config.screen_cols) len = config.screen_cols;
+      ab->append(config.row.chars); 
     }
+
 
     ab->append("\x1b[K"); // erarse each line before painting
     
@@ -340,16 +407,23 @@ void initEditor()
   // set the x and y coordinates to 0,0
   config.cursor_x = 0; 
   config.cursor_y = 0;
+  config.num_rows = 0;
 
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
 }
 
-int main() 
+int main(int argc, char *argv[]) 
 {
   try 
   {
     enter_raw_mode();
     initEditor();
+    
+    if (argc >= 2) 
+    {
+      std::string file_name (argv[1]);
+      editorOpen(file_name);
+    }
     
     while (1) // To run infinitely until read() returns 0 (aka timeruns out)
     {
