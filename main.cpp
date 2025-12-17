@@ -377,6 +377,8 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       break;
 
     case END_KEY:
+      if (config.cursor_y < config.num_rows)
+        config.cursor_x = config.row[config.cursor_y].size;
       config.cursor_x = config.screen_cols - 1; // move the cursor at the end of the line
       break;
 
@@ -387,11 +389,11 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
       {
         if (c == PAGE_UP) 
         {
-          E.cy = E.rowoff;
+          config.cursor_y = config.row_offset;
         } else if (c == PAGE_DOWN) 
         {
-          E.cy = E.rowoff + E.screenrows - 1;
-          if (E.cy > E.numrows) E.cy = E.numrows;
+          config.cursor_y = config.row_offset + config.screen_rows - 1;
+          if (config.cursor_y > config.num_rows) config.cursor_y = config.num_rows;
         }
 
         int times = config.screen_rows;
@@ -479,10 +481,7 @@ void editorDrawRows(AppendBuffer *ab)  // The rows of tildes
 
     ab->append("\x1b[K"); // erarse each line before painting
     
-    if (y < config.screen_rows - 1) 
-    {
       ab->append("\r\n");
-    }
   }
 }
 
@@ -519,6 +518,7 @@ void initEditor()
   config.row = NULL;
 
   if (getWindowSize(&config.screen_rows, &config.screen_cols) == -1) {throw std::runtime_error(std::string("Read error:") + std::strerror(errno));}
+  config.screen_rows -= 1;
 }
 
 int main(int argc, char *argv[]) 
