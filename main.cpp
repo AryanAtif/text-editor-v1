@@ -429,7 +429,7 @@ void editorRefreshScreen()
   editorDrawRows(&ab);
   
   char buf[32];
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (config.cursor_y - config.row_offset)+ 1, config.cursor_x + 1);
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (config.cursor_y - config.row_offset) + 1, (config.cursor_x - config.row_offset) + 1);
   ab.append(buf);
 
   ab.append("\x1b[?25h"); // shows the cursor
