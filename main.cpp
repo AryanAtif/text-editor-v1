@@ -385,6 +385,15 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
     case PAGE_UP:
     case PAGE_DOWN:
       {
+        if (c == PAGE_UP) 
+        {
+          E.cy = E.rowoff;
+        } else if (c == PAGE_DOWN) 
+        {
+          E.cy = E.rowoff + E.screenrows - 1;
+          if (E.cy > E.numrows) E.cy = E.numrows;
+        }
+
         int times = config.screen_rows;
         while (times--)                              // While as long as we don't reach the top of the screen
           editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN); //Keep running the arrow_up key, if the character read was page up
