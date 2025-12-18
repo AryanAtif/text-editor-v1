@@ -314,6 +314,28 @@ void editorDelChar()
   }
 }
 
+void editorInsertNewline()
+{
+  if (config.cursor_x == 0) // if cursor is at the beginning of a line
+  {
+    std::string null_str = "";
+    editor_insert_row(config.cursor_y, null_str, 0);  // make space for a new row below and move the others 1 index down
+  } 
+  else
+  {
+    editor_row *row = &config.row[config.cursor_y]; // make a new row
+                                                    
+    std::string remaining_chars = &row->chars[config.cursor_x];
+
+    editor_insert_row(config.cursor_y + 1, remaining_chars, row->size - config.cursor_x); // copy the characters on the right of the cursor to a new row
+    row = &config.row[config.cursor_y]; 
+    row->size = config.cursor_x; 
+    row->chars[row->size] = '\0'; //remove the characters
+    editorUpdateRow(row);
+  }
+  config.cursor_y++;
+  config.cursor_x = 0;
+}
 //==========================================================================================================
 /**** File I/O ****/
 //==========================================================================================================
@@ -491,7 +513,7 @@ void editorProcessKeypress() // editorProcessKeypress() waits for a keypress, an
   switch (c)
   {
     case '\r':
-      // todo;;;
+      editorInsertNewline();
       break;
 
 
