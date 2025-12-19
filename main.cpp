@@ -76,13 +76,11 @@ public:
         
         if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &og_termios) == -1) 
         {
-            // We use standard error here, but we can't throw in a destructor usually
             std::cerr << "tcsetattr error: " << std::strerror(errno) << std::endl;
         }
         raw_mode_active = false;
     }
     
-    // RAII: Destructor ensures the terminal always resets on exit
     ~Terminal() 
     {
         // To clear the screen on exit
@@ -232,9 +230,8 @@ public:
 class EditorRow 
 {
 private:
-    std::string chars;  // Replaced char* and size with std::string for RAII
-    std::string render; // Replaced char* and r_size with std::string
-    
+    std::string chars;  
+    std::string render;    
     void update_render() 
     {
         render.clear();
@@ -253,26 +250,23 @@ private:
             }
             else
             {
-                render.push_back(c); // copy the contents of row.chars into row.render
+                render.push_back(c);
                 idx++;
             }
         }
     }
     
 public:
-    EditorRow() = default; // Default constructor
+    EditorRow() = default; 
     
     EditorRow(const std::string& s) : chars(s) 
     {
         update_render();
     }
     
-    // Rule of Zero: No manual Copy/Move/Destructor needed because we use std::string!
-    
     void insert_char(int at, int c)  // the row where to put char, at what index, the char to be inserted
     {
         if (at < 0 || at > (int)chars.size()) { at = chars.size(); }
-        // std::string handles memory reallocation and moving internally
         chars.insert(chars.begin() + at, (char)c);
         update_render();
     }
@@ -280,7 +274,6 @@ public:
     void delete_char(int at) 
     {
         if (at < 0 || at >= (int)chars.size()) { return; }
-        // std::string handles memory moving (memmove) logic
         chars.erase(at, 1);
         update_render();
     }
@@ -301,7 +294,7 @@ public:
     
     int get_size() const { return (int)chars.size(); }
     int get_render_size() const { return (int)render.size(); }
-    const char* get_chars() const { return chars.c_str(); } // For compatibility with C-APIs if needed
+    const char* get_chars() const { return chars.c_str(); }
     const std::string& get_chars_str() const { return chars; }
     const char* get_render() const { return render.c_str(); }
 };
@@ -312,14 +305,12 @@ public:
 class TextBuffer 
 {
 private:
-    std::vector<EditorRow> rows; // Replaced EditorRow* and num_rows with std::vector
+    std::vector<EditorRow> rows;
     int changes;
-    std::string filename; // Replaced char* with std::string
-    
+    std::string filename;    
 public:
     TextBuffer() : changes(0) {}
     
-    // Rule of Zero: std::vector and std::string clean themselves up!
     
     void insert_row(int at, const std::string& s) 
     {
@@ -385,7 +376,7 @@ public:
         rows.clear();
         while (std::getline(file, line)) 
         {
-            // Remove \r if present (Windows/DOS format)
+            // Remove \r if present 
             if (!line.empty() && line.back() == '\r') {
                 line.pop_back();
             }
@@ -816,7 +807,7 @@ public:
 };
 
 //==========================================================================================================
-// Main Entry Point
+// Main Program Execution
 //==========================================================================================================
 int main(int argc, char* argv[]) 
 {
@@ -835,12 +826,6 @@ int main(int argc, char* argv[])
     }
     catch (const std::exception& error) 
     {
-        // Manual cleanup on crash needed as stack unwinding might not trigger Terminal destructor in all crash cases
-        // But for std::runtime_error caught here, ~Terminal() in Editor will NOT be called if we exit(1) immediately
-        // unless Editor is properly destructed.
-        
-        // Since editor is on stack, we just print and let it destruct normally or force a cleanup if raw mode stuck.
-        
         std::cerr << error.what() << std::endl;
         return 1;
     }
