@@ -1,9 +1,7 @@
 //==========================================================================================================
 /**** The Header files ****/
 //==========================================================================================================
-#define _DEFAULT_SOURCE
-#define _BSD_SOURCE
-#define _GNU_SOURCE
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <time.h>
@@ -27,10 +25,10 @@
 //==========================================================================================================
 /**** Declarations & Constants ****/
 //==========================================================================================================
-constexpr int ctrl_key(int k) { return k & 0x1f; }
+constexpr int ctrl_key(int k) { return k & 0x1f; }  // 0x1f + k is similar to ctrl-k for the terminal
 constexpr const char* VERSION = "1.0";
-constexpr int TAB_SIZE = 8;
-constexpr int QUIT_TIMES = 3;
+constexpr int TAB_SIZE = 8;           // Except the tabs to not function properly, i'm not resolving the problem rn
+constexpr int QUIT_TIMES = 3;         //how many times should the user enter the quit key to leave the program with unsaved changes
 
 enum class Key : int
 {
@@ -57,7 +55,7 @@ class TextBuffer;
 class Editor;
 
 //==========================================================================================================
-/**** Terminal Management Class ****/
+/**** Terminal Class ****/
 //==========================================================================================================
 class Terminal 
 {
@@ -124,15 +122,18 @@ public:
             }
         }
         
-        if (c == '\x1b') 
+        if (c == '\x1b')//'\x1b' is an escape sequence for POSIX, when combined with more characters, its meaningful to the terminal 
         {
             char seq[3];
-            
-            if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
+
+            // we don't want to perform any action when the esc key is read (that is just the '\x1b'), so just return the blank \x1b
+            if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';            
             if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
+
+
             if (seq[0] == '[') 
             {      
-                if (seq[1] >= '0' && seq[1] <= '9')  // check if the entered sequence represents the pageup/down key
+                if (seq[1] >= '0' && seq[1] <= '9')  // check if the entered sequence represents the pageup/down, home, or end keys
                 {
                     if (read(STDIN_FILENO, &seq[2], 1) != 1) return '\x1b';
                     
